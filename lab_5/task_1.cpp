@@ -97,7 +97,7 @@ main(){
         }
         counter++;
     }
-    if (correct){
+    if (stack.top == -1){
         cout << "This expression is correct.";
     }
     else{
