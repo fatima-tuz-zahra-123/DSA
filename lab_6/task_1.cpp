@@ -26,18 +26,20 @@ public:
         return root == nullptr;
     }
 
-    void Search(int value, BST_Node*& loc, BST_Node*& ploc) {
+    bool Search(int value, BST_Node*& loc, BST_Node*& ploc) {
         loc = root;
         ploc = nullptr;
         
         while (loc != nullptr) {
             if (value == loc->data) {
-                return;
+                return true;
             } else {
                 ploc = loc;
                 loc = (value < loc->data) ? loc->LeftChild : loc->RightChild;
             }
         }
+        return false;
+        
     }
 
     void InsertWithoutDuplication(int value) {
@@ -148,6 +150,51 @@ public:
     int GetInternalNodeCount() {
         return CountInternalNodes(root);
     }
+
+    //lab7 task1
+    BST_Node* DeleteNode(int key){
+        //if root is a nullptr or tree is empty
+        if(root == nullptr){ 
+            cout<< "No Nodes In The Tree"<<endl;
+            return root;
+        }
+        
+        BST_Node *loc, *ploc;
+        Search(key,loc, ploc);
+        if(loc != nullptr)
+        {
+            //case 1
+            if (loc->LeftChild == nullptr && loc->RightChild == nullptr) 
+            {
+                if (ploc != nullptr) 
+                {
+                    if (ploc->LeftChild == loc) ploc->LeftChild = nullptr;
+                    else ploc->RightChild = nullptr;
+                } 
+                else 
+                {
+                    root = nullptr; 
+                }
+            delete loc;
+            }
+        
+            //case 2
+            else if(loc->LeftChild == nullptr|| loc->RightChild == nullptr)
+            {
+                BST_Node* child = loc->LeftChild? loc->LeftChild : loc->RightChild;
+                if(ploc->LeftChild == loc)ploc->LeftChild = child;
+                else ploc->RightChild = child;
+            }
+            else
+            {
+                BST_Node* child1 = loc->RightChild;
+                BST_Node* child2 = loc->LeftChild;
+
+                if(ploc->LeftChild == loc)ploc->LeftChild = child;
+                else ploc->RightChild = child;
+            }
+        }
+    }
 };
 
 int main() {
@@ -158,7 +205,7 @@ int main() {
     tree.InsertWithoutDuplication(5);
     tree.InsertWithoutDuplication(20);
     tree.InsertWithoutDuplication(3);
-    tree.InsertWithoutDuplication(7);
+    tree.InsertWithoutDuplication(1);
     tree.InsertWithoutDuplication(15);
     tree.InsertWithoutDuplication(30);
 
@@ -187,6 +234,12 @@ int main() {
 
     // Testing internal nodes
     cout << "Number of internal nodes: " << tree.GetInternalNodeCount() << endl;
+    tree.DeleteNode(20);
+    cout << "PreOrder Traversal: ";
+    tree.PreOrder();
+    cout << endl;
 
+    BST tree2;
+    tree2.DeleteNode(1);
     return 0;
 }
