@@ -133,7 +133,7 @@ public:
     }
 
     // Wrapper functions for traversals and counting
-    void PreOrder() { PreOrderTraversal(root); }
+    void PreOrder() {if(root != nullptr) PreOrderTraversal(root);else cout << "the tree is empty" <<endl; }
     void InOrder() { InOrderTraversal(root); }
     void PostOrder() { PostOrderTraversal(root); }
 
@@ -161,9 +161,11 @@ public:
         
         BST_Node *loc, *ploc;
         Search(key,loc, ploc);
+      
+        
         if(loc != nullptr)
         {
-            //case 1
+            //case: leaf node
             if (loc->LeftChild == nullptr && loc->RightChild == nullptr) 
             {
                 if (ploc != nullptr) 
@@ -175,25 +177,120 @@ public:
                 {
                     root = nullptr; 
                 }
-            delete loc;
             }
         
-            //case 2
+            //case 2: one child
             else if(loc->LeftChild == nullptr|| loc->RightChild == nullptr)
             {
                 BST_Node* child = loc->LeftChild? loc->LeftChild : loc->RightChild;
-                if(ploc->LeftChild == loc)ploc->LeftChild = child;
+                if (ploc->LeftChild == loc)
+                    ploc->LeftChild = child;
                 else ploc->RightChild = child;
+                
             }
             else
             {
-                BST_Node* child1 = loc->RightChild;
-                BST_Node* child2 = loc->LeftChild;
+                // case 3: two children
+                BST_Node *predecessor = loc->LeftChild;
+                BST_Node *predecessorParent = loc;
+                while (predecessor->RightChild != nullptr)
+                {
+                predecessorParent = predecessor;
+                predecessor = predecessor->RightChild;
+                }
+                
+                loc->data = predecessor->data;
+                if (ploc == nullptr)
+                {
+                    loc->data = predecessor->data;
+                    loc->LeftChild = predecessor->LeftChild;
+                }
+                else if (predecessorParent->RightChild == predecessor)
+                    predecessorParent->RightChild = predecessor->LeftChild;
+                else
+                    predecessorParent->LeftChild = predecessor->LeftChild;
 
-                if(ploc->LeftChild == loc)ploc->LeftChild = child;
-                else ploc->RightChild = child;
+                delete predecessor;
+
+                
             }
         }
+        return loc;
+    }
+
+    BST_Node* TreeDeletion(BST_Node* node)
+    {
+        if (node != nullptr) 
+        {
+            TreeDeletion(node->LeftChild);
+            TreeDeletion(node->RightChild);
+            delete node;
+        }
+        return node;
+    }
+    
+    //wrapper function
+    BST_Node* DeleteTree()
+    {
+        TreeDeletion(root);
+        root = nullptr;
+        return root;
+    }
+
+    void LeafNodeDeletion() { DeleteLeafNodes(root); }
+
+    void DeleteLeafNodes(BST_Node * node)
+    {
+        BST_Node *loc = node;
+        if (node != nullptr) {
+            if (loc->LeftChild != nullptr && loc->LeftChild->LeftChild == nullptr && loc->LeftChild->RightChild == nullptr) 
+                loc->LeftChild = nullptr;
+            else DeleteLeafNodes(node->LeftChild);
+            if (loc->RightChild != nullptr && loc->RightChild->LeftChild == nullptr && loc->RightChild->RightChild == nullptr)
+                loc->RightChild = nullptr;
+            else DeleteLeafNodes(node->RightChild);
+            
+            
+        }
+
+    }
+
+    void LeftSubTreeNodeDeletion(){ DeleteNodeWithLeftSubtree(root);}
+
+    void DeleteNodeWithLeftSubtree(BST_Node *node)
+    {
+        BST_Node *loc = node;
+        if (node != nullptr) {
+            if (loc->LeftChild == nullptr && loc->RightChild != nullptr) 
+                loc->LeftChild = nullptr;
+            else DeleteLeafNodes(node->LeftChild);
+            if (loc->RightChild != nullptr && loc->RightChild->LeftChild == nullptr && loc->RightChild->RightChild == nullptr)
+                loc->RightChild = nullptr;
+            else DeleteLeafNodes(node->RightChild);
+
+        }
+    }
+//wrapper function
+    void countNodeTypes(int &leafCount, int &leftOnlyCount, int &rightOnlyCount, int &twoChildrenCount) {
+        countNodeTypesRec(root, leafCount, leftOnlyCount, rightOnlyCount, twoChildrenCount);
+    }
+
+    void countNodeTypesRec(BST_Node* node, int &leafCount, int &leftOnlyCount, int &rightOnlyCount, int &twoChildrenCount) {
+        if (node == nullptr) return;
+        if (node->LeftChild == nullptr && node->RightChild == nullptr) {
+            leafCount++;
+        }
+        else if (node->LeftChild != nullptr && node->RightChild == nullptr) {
+            leftOnlyCount++;
+        }
+        else if (node->LeftChild == nullptr && node->RightChild != nullptr) {
+            rightOnlyCount++;
+        }
+        else {
+            twoChildrenCount++;
+        }
+        countNodeTypesRec(node->LeftChild, leafCount, leftOnlyCount, rightOnlyCount, twoChildrenCount);
+        countNodeTypesRec(node->RightChild, leafCount, leftOnlyCount, rightOnlyCount, twoChildrenCount);
     }
 };
 
@@ -234,12 +331,39 @@ int main() {
 
     // Testing internal nodes
     cout << "Number of internal nodes: " << tree.GetInternalNodeCount() << endl;
-    tree.DeleteNode(20);
-    cout << "PreOrder Traversal: ";
+    tree.DeleteNode(10);
+    cout << "Post Node deletion PreOrder Traversal: ";
     tree.PreOrder();
     cout << endl;
 
-    BST tree2;
-    tree2.DeleteNode(1);
+    // tree.DeleteTree();
+    // cout << "PreOrder Traversal: ";
+    // tree.PreOrder();
+    // cout << endl;
+    
+    // tree.LeafNodeDeletion();
+    // cout << "Post leaf node deletion PreOrder Traversal: ";
+    // tree.PreOrder();
+    // cout << endl;
+
+    int leafCount = 0;
+    int leftOnlyCount = 0;
+    int rightOnlyCount = 0;
+    int twoChildrenCount = 0;
+
+    tree.countNodeTypes(leafCount, leftOnlyCount, rightOnlyCount, twoChildrenCount);
+    cout << "Leaf nodes: " << leafCount << endl;
+    cout << "Left only nodes: " << leftOnlyCount << endl;
+    cout << "Right only nodes: " << rightOnlyCount << endl;
+    cout << "Two children nodes: " << twoChildrenCount << endl;
+
+
+    tree.LeftSubTreeNodeDeletion();
+    cout << "Post left subtree node deletion PreOrder Traversal: ";
+    tree.PreOrder();
+    cout << endl;
+
+
+
     return 0;
 }
